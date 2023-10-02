@@ -2,30 +2,43 @@ import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import './App.css';
 
-const socket: Socket = io(process.env.SOCKET_HOST as string);
-
-type AppState = {
-  connectedUsers: number[];
-};
+const socket: Socket = io(process.env.SOCKET_HOST || 'http://localhost:3000'); // Provide a default URL if SOCKET_HOST is not defined.
 
 function App() {
-  const [connectedUsers, setConnectedUsers] = useState<AppState['connectedUsers']>([]);
+  const [connectedUsers, setConnectedUsers] = useState<number[]>([]);
 
   useEffect(() => {
     socket.connect();
+    return () => {
+      socket.disconnect(); // Clean up the socket connection when the component unmounts.
+    };
+  }, []);
 
-    socket.on('connected', (data) => {
+  useEffect(() => {
+    const handleConnected = (data: { id: number }) => {
       setConnectedUsers((prevUsers) => [...prevUsers, data.id]);
-    });
+    };
 
-    socket.on('disconnected', (data) => {
+    const handleDisconnected = (data: { id: number }) => {
       setConnectedUsers((prevUsers) =>
         prevUsers.filter((id) => id !== data.id)
       );
-    });
+    };
+
+    const handleConnectedUsers = (users: number[]) => {
+      setConnectedUsers(users);
+    };
+
+    socket.on('connected', handleConnected);
+    socket.on('disconnected', handleDisconnected);
+
+    // Listen for updates on the list of connected users.
+    socket.on('connectedUsers', handleConnectedUsers);
 
     return () => {
-      socket.disconnect();
+      socket.off('connected', handleConnected);
+      socket.off('disconnected', handleDisconnected);
+      socket.off('connectedUsers', handleConnectedUsers);
     };
   }, []);
 
