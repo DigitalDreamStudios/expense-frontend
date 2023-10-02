@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Create .env file
-        run: echo "VITE_API=${{ secrets.VITE_API }}" > .env
+        run: echo "SOCKET_HOST=${{ secrets.SOCKET_HOST }}" > .env
       - name: Build
         run: npm run build
       - name: Setup Pages
