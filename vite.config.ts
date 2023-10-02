@@ -11,5 +11,8 @@ export default defineConfig({
   // Define environment variables
   define: {
     'process.env': process.env
-  }
+  },
+
+  // Base path for production
+  base: '/expense-frontend/'
 })
